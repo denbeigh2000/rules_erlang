@@ -44,7 +44,19 @@ def _erlang_headers_impl(ctx):
         command = "\n".join(commands),
     )
 
-    return [DefaultInfo(files = depset(outs))]
+    include_dir = outs[0].dirname if outs else None
+    compilation_context = cc_common.create_compilation_context(
+        headers = depset(outs),
+        system_includes = depset([include_dir]) if include_dir else depset(),
+        includes = depset([include_dir]) if include_dir else depset(),
+    )
+
+    return [
+        DefaultInfo(files = depset(outs)),
+        CcInfo(
+            compilation_context = compilation_context,
+        ),
+    ]
 
 erlang_headers = rule(
     implementation = _erlang_headers_impl,
