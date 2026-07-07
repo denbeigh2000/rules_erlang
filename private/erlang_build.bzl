@@ -106,9 +106,11 @@ curl -L "{archive_url}" -o {archive_path}
     cc_inputs = []
     cc_setup = ""
 
+    toolchain_dir = ""
     sysroot_dir = ""
     if ctx.attr.cc_toolchain_files:
         cc_inputs.extend(ctx.attr.cc_toolchain_files[DefaultInfo].files.to_list())
+        toolchain_dir = ctx.attr.cc_toolchain_files.label.workspace_root
     if ctx.attr.cc_sysroot_files:
         cc_inputs.extend(ctx.attr.cc_sysroot_files[DefaultInfo].files.to_list())
         sysroot_dir = ctx.attr.cc_sysroot_files.label.workspace_root
@@ -117,6 +119,7 @@ curl -L "{archive_url}" -o {archive_path}
         exports = []
         for key, val in ctx.attr.cc_configure_env.items():
             resolved = val.replace("{sysroot}", "$PWD/" + sysroot_dir if sysroot_dir else "")
+            resolved = resolved.replace("{toolchain}", "$PWD/" + toolchain_dir if toolchain_dir else "")
             exports.append('export {}="{}"'.format(key, resolved))
         cc_setup = "\n".join(exports)
 
@@ -362,8 +365,8 @@ erlang_build = rule(
         ),
         "cc_configure_env": attr.string_dict(
             doc = "Env vars exported before ./configure (CC, CXX, LD, AR, RANLIB, etc.). " +
-                  "Values may contain {sysroot} placeholder, resolved to the " +
-                  "absolute sandbox path of cc_sysroot_files.",
+                  "Values may contain {sysroot} and {toolchain} placeholders, resolved to the " +
+                  "absolute sandbox paths of cc_sysroot_files and cc_toolchain_files respectively.",
         ),
         "sha256": tools["sha256"],
     },
