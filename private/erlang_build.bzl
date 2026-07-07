@@ -393,9 +393,8 @@ trap 'rm -rf "$WORK"' EXIT
 # the filename suffix.
 tar -C "$WORK" --no-same-owner -xf "$ABS_TAR"
 
-# Copy into the tree artifact, dereferencing any symlinks (tar -h) so the
-# output contains no symlinks (robust on remote execution) and preserving
-# executable bits -- regardless of how the input tarball was produced.
+# tar -h pipe (-f - both ends, no temp archive): resolves OTP's symlinks (erts &c)
+# so the tree artifact is symlink-free -- symlinks inside one break remote exec.
 tar -C "$WORK" -chf - . | tar -C "$ABS_RELEASE_DIR" --no-same-owner -xf -
 
 # OTP_VERSION is embedded at the release root by erlang_build; fall back to the
